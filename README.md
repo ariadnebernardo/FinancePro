@@ -140,4 +140,3 @@ finpro/
 |---------|------------|---------------------|
 | Vercel  | 100 GB banda/mês, projetos ilimitados | Centenas de usuários |
 | Supabase | 500 MB banco, 50k usuários auth | Anos de uso pessoal |
-# FinancePro

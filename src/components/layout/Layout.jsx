@@ -3,11 +3,13 @@ import { useAuth } from '../../hooks/useAuth'
 import { getCurrentMonth, monthLabel, prevMonth, nextMonth } from '../../lib/utils'
 
 const NAV = [
-  { id: 'dashboard',    icon: '🏠', label: 'Dashboard'     },
-  { id: 'transactions', icon: '💸', label: 'Transações'    },
-  { id: 'investments',  icon: '📈', label: 'Investimentos' },
-  { id: 'planning',     icon: '🎯', label: 'Planejamento'  },
-  { id: 'reports',      icon: '📊', label: 'Relatórios'    },
+  { id: 'dashboard',    icon: '🏠', label: 'Dashboard'      },
+  { id: 'transactions', icon: '💸', label: 'Transações'     },
+  { id: 'installments', icon: '💳', label: 'Parcelamentos'  },
+  { id: 'budget',       icon: '📋', label: 'Orçamento'      },
+  { id: 'investments',  icon: '📈', label: 'Investimentos'  },
+  { id: 'planning',     icon: '🎯', label: 'Metas'          },
+  { id: 'reports',      icon: '📊', label: 'Relatórios'     },
 ]
 
 export default function Layout({ children, page, onChangePage }) {
@@ -20,7 +22,7 @@ export default function Layout({ children, page, onChangePage }) {
       <header style={{
         position: 'sticky', top: 0, zIndex: 50, height: 60, padding: '0 24px',
         display: 'flex', alignItems: 'center', gap: 16,
-        background: 'rgba(11,15,26,0.9)', backdropFilter: 'blur(20px)',
+        background: 'rgba(11,15,26,0.92)', backdropFilter: 'blur(20px)',
         borderBottom: '1px solid rgba(255,255,255,0.07)',
       }}>
         <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg,#63b3ed,#68d391)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>💰</div>
@@ -35,7 +37,7 @@ export default function Layout({ children, page, onChangePage }) {
 
         {/* User */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 16 }}>
-          <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg,#63b3ed,#b794f4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 }}>
+          <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg,#63b3ed,#b794f4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#0b0f1a' }}>
             {user?.email?.[0]?.toUpperCase() ?? 'U'}
           </div>
           <button onClick={signOut} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.45)', padding: '5px 12px', borderRadius: 8, cursor: 'pointer', fontFamily: "'Space Grotesk',sans-serif", fontSize: 12 }}>
@@ -46,7 +48,7 @@ export default function Layout({ children, page, onChangePage }) {
 
       <div style={{ display: 'flex', flex: 1 }}>
         {/* Sidebar */}
-        <nav style={{ width: 200, padding: '16px 12px', borderRight: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
+        <nav style={{ width: 210, padding: '16px 12px', borderRight: '1px solid rgba(255,255,255,0.06)', flexShrink: 0, position: 'sticky', top: 60, height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
           {NAV.map(n => (
             <button key={n.id} onClick={() => onChangePage(n.id)}
               style={{
@@ -64,27 +66,25 @@ export default function Layout({ children, page, onChangePage }) {
         </nav>
 
         {/* Main */}
-        <main style={{ flex: 1, padding: '24px 28px', overflowX: 'hidden' }}>
+        <main style={{ flex: 1, padding: '24px 28px', overflowX: 'hidden', paddingBottom: 80 }}>
           {typeof children === 'function' ? children({ month }) : children}
         </main>
       </div>
 
-      {/* Mobile bottom nav */}
+      {/* Mobile bottom nav — mostra só os 5 principais */}
       <nav style={{
-        display: 'none',
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
-        background: 'rgba(11,15,26,0.95)', backdropFilter: 'blur(20px)',
+        background: 'rgba(11,15,26,0.97)', backdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(255,255,255,0.07)',
-      }}
-        className="mobile-nav"
-      >
-        {NAV.map(n => (
+        display: 'flex',
+      }}>
+        {NAV.slice(0, 5).map(n => (
           <button key={n.id} onClick={() => onChangePage(n.id)}
             style={{
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-              padding: '10px 0', border: 'none', background: 'none', cursor: 'pointer',
+              padding: '10px 0 8px', border: 'none', background: 'none', cursor: 'pointer',
               color: page === n.id ? '#63b3ed' : 'rgba(255,255,255,0.35)',
-              fontFamily: "'Space Grotesk',sans-serif", fontSize: 10, fontWeight: 600, gap: 3,
+              fontFamily: "'Space Grotesk',sans-serif", fontSize: 9, fontWeight: 600, gap: 3,
             }}>
             <span style={{ fontSize: 20 }}>{n.icon}</span>
             {n.label.split(' ')[0]}

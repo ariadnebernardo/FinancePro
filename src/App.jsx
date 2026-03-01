@@ -3,11 +3,15 @@ import { AuthProvider, useAuth } from './hooks/useAuth'
 import { useTransactions } from './hooks/useTransactions'
 import { useAssets } from './hooks/useAssets'
 import { useBudgets } from './hooks/useBudgets'
+import { useInstallments } from './hooks/useInstallments'
+import { useFixedExpenses } from './hooks/useFixedExpenses'
 import Layout from './components/layout/Layout'
 import AuthPage from './pages/AuthPage'
 import Dashboard from './pages/Dashboard'
 import TransactionsPage from './pages/Transactions'
 import InvestmentsPage from './pages/Investments'
+import InstallmentsPage from './pages/Installments'
+import BudgetPage from './pages/Budget'
 import { PlanningPage, ReportsPage } from './pages/PlanningReports'
 import { Spinner } from './components/ui'
 
@@ -28,9 +32,11 @@ function AppInner() {
   const { user, loading: authLoading } = useAuth()
   const [page, setPage] = useState('dashboard')
 
-  const txHook     = useTransactions()
-  const assetsHook = useAssets()
-  const budgetHook = useBudgets()
+  const txHook      = useTransactions()
+  const assetsHook  = useAssets()
+  const budgetHook  = useBudgets()
+  const instHook    = useInstallments()
+  const fixedHook   = useFixedExpenses()
 
   if (authLoading) return (
     <div style={{ minHeight: '100vh', background: '#0b0f1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -42,55 +48,84 @@ function AppInner() {
 
   return (
     <Layout page={page} onChangePage={setPage}>
-      {({ month }) => (
-        <>
-          {page === 'dashboard' && (
-            <Dashboard
-              transactions={txHook.transactions}
-              assets={assetsHook.assets}
-              dividends={assetsHook.dividends}
-              month={month}
-            />
-          )}
-          {page === 'transactions' && (
-            <TransactionsPage
-              transactions={txHook.transactions}
-              loading={txHook.loading}
-              onAdd={txHook.add}
-              onRemove={txHook.remove}
-              month={month}
-            />
-          )}
-          {page === 'investments' && (
-            <InvestmentsPage
-              assets={assetsHook.assets}
-              dividends={assetsHook.dividends}
-              loading={assetsHook.loading}
-              onAddAsset={assetsHook.addAsset}
-              onUpdateAsset={assetsHook.updateAsset}
-              onRemoveAsset={assetsHook.removeAsset}
-              onUpsertDividend={assetsHook.upsertDividend}
-            />
-          )}
-          {page === 'planning' && (
-            <PlanningPage
-              transactions={txHook.transactions}
-              budgets={budgetHook.budgets}
-              loading={budgetHook.loading}
-              onUpsertBudget={budgetHook.upsert}
-              onRemoveBudget={budgetHook.remove}
-              month={month}
-            />
-          )}
-          {page === 'reports' && (
-            <ReportsPage
-              transactions={txHook.transactions}
-              assets={assetsHook.assets}
-              dividends={assetsHook.dividends}
-            />
-          )}
-        </>
-      )}
+      {({ month }) => {
+        const expectedIncome = fixedHook.getExpectedIncome(month)
+        return (
+          <>
+            {page === 'dashboard' && (
+              <Dashboard
+                transactions={txHook.transactions}
+                assets={assetsHook.assets}
+                dividends={assetsHook.dividends}
+                installments={instHook.installments}
+                fixedExpenses={fixedHook.fixedExpenses}
+                expectedIncome={expectedIncome}
+                month={month}
+              />
+            )}
+            {page === 'transactions' && (
+              <TransactionsPage
+                transactions={txHook.transactions}
+                loading={txHook.loading}
+                onAdd={txHook.add}
+                onRemove={txHook.remove}
+                month={month}
+              />
+            )}
+            {page === 'installments' && (
+              <InstallmentsPage
+                installments={instHook.installments}
+                loading={instHook.loading}
+                onAdd={instHook.add}
+                onUpdate={instHook.update}
+                onRemove={instHook.remove}
+                expectedIncome={expectedIncome}
+              />
+            )}
+            {page === 'budget' && (
+              <BudgetPage
+                transactions={txHook.transactions}
+                fixedExpenses={fixedHook.fixedExpenses}
+                installments={instHook.installments}
+                onAddFixed={fixedHook.addFixed}
+                onUpdateFixed={fixedHook.updateFixed}
+                onRemoveFixed={fixedHook.removeFixed}
+                expectedIncome={expectedIncome}
+                onSaveIncomePlan={fixedHook.upsertIncomePlan}
+                month={month}
+              />
+            )}
+            {page === 'investments' && (
+              <InvestmentsPage
+                assets={assetsHook.assets}
+                dividends={assetsHook.dividends}
+                loading={assetsHook.loading}
+                onAddAsset={assetsHook.addAsset}
+                onUpdateAsset={assetsHook.updateAsset}
+                onRemoveAsset={assetsHook.removeAsset}
+                onUpsertDividend={assetsHook.upsertDividend}
+              />
+            )}
+            {page === 'planning' && (
+              <PlanningPage
+                transactions={txHook.transactions}
+                budgets={budgetHook.budgets}
+                loading={budgetHook.loading}
+                onUpsertBudget={budgetHook.upsert}
+                onRemoveBudget={budgetHook.remove}
+                month={month}
+              />
+            )}
+            {page === 'reports' && (
+              <ReportsPage
+                transactions={txHook.transactions}
+                assets={assetsHook.assets}
+                dividends={assetsHook.dividends}
+              />
+            )}
+          </>
+        )
+      }}
     </Layout>
   )
 }
