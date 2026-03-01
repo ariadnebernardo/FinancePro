@@ -1,6 +1,5 @@
-import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
-import { getCurrentMonth, monthLabel, prevMonth, nextMonth } from '../../lib/utils'
+import { monthLabel, prevMonth, nextMonth } from '../../lib/utils'
 
 const NAV = [
   { id: 'dashboard',    icon: '🏠', label: 'Dashboard'      },
@@ -12,9 +11,8 @@ const NAV = [
   { id: 'reports',      icon: '📊', label: 'Relatórios'     },
 ]
 
-export default function Layout({ children, page, onChangePage }) {
+export default function Layout({ children, page, onChangePage, month, onChangeMonth }) {
   const { user, signOut } = useAuth()
-  const [month, setMonth] = useState(getCurrentMonth())
 
   return (
     <div style={{ minHeight: '100vh', background: '#0b0f1a', display: 'flex', flexDirection: 'column' }}>
@@ -30,9 +28,9 @@ export default function Layout({ children, page, onChangePage }) {
 
         {/* Month nav */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
-          <button onClick={() => setMonth(m => prevMonth(m))} style={{ background: 'rgba(255,255,255,0.07)', border: 'none', color: '#e2e8f0', width: 32, height: 32, borderRadius: 9, cursor: 'pointer', fontSize: 16 }}>‹</button>
+          <button onClick={() => onChangeMonth(m => prevMonth(m))} style={{ background: 'rgba(255,255,255,0.07)', border: 'none', color: '#e2e8f0', width: 32, height: 32, borderRadius: 9, cursor: 'pointer', fontSize: 16 }}>‹</button>
           <span style={{ fontWeight: 600, fontSize: 14, color: '#e2e8f0', minWidth: 100, textAlign: 'center' }}>{monthLabel(month)}</span>
-          <button onClick={() => setMonth(m => nextMonth(m))} style={{ background: 'rgba(255,255,255,0.07)', border: 'none', color: '#e2e8f0', width: 32, height: 32, borderRadius: 9, cursor: 'pointer', fontSize: 16 }}>›</button>
+          <button onClick={() => onChangeMonth(m => nextMonth(m))} style={{ background: 'rgba(255,255,255,0.07)', border: 'none', color: '#e2e8f0', width: 32, height: 32, borderRadius: 9, cursor: 'pointer', fontSize: 16 }}>›</button>
         </div>
 
         {/* User */}
@@ -66,31 +64,10 @@ export default function Layout({ children, page, onChangePage }) {
         </nav>
 
         {/* Main */}
-        <main style={{ flex: 1, padding: '24px 28px', overflowX: 'hidden', paddingBottom: 80 }}>
-          {typeof children === 'function' ? children({ month }) : children}
+        <main style={{ flex: 1, padding: '24px 28px', overflowX: 'hidden' }}>
+          {children}
         </main>
       </div>
-
-      {/* Mobile bottom nav — mostra só os 5 principais */}
-      <nav style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
-        background: 'rgba(11,15,26,0.97)', backdropFilter: 'blur(20px)',
-        borderTop: '1px solid rgba(255,255,255,0.07)',
-        display: 'flex',
-      }}>
-        {NAV.slice(0, 5).map(n => (
-          <button key={n.id} onClick={() => onChangePage(n.id)}
-            style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-              padding: '10px 0 8px', border: 'none', background: 'none', cursor: 'pointer',
-              color: page === n.id ? '#63b3ed' : 'rgba(255,255,255,0.35)',
-              fontFamily: "'Space Grotesk',sans-serif", fontSize: 9, fontWeight: 600, gap: 3,
-            }}>
-            <span style={{ fontSize: 20 }}>{n.icon}</span>
-            {n.label.split(' ')[0]}
-          </button>
-        ))}
-      </nav>
     </div>
   )
 }

@@ -298,7 +298,7 @@ const FORM_DEFAULT = {
   start_date: new Date().toISOString().split('T')[0], card: '',
 }
 
-export default function InstallmentsPage({ installments, loading, onAdd, onUpdate, onRemove, expectedIncome }) {
+export default function InstallmentsPage({ installments, loading, onAdd, onUpdate, onRemove, expectedIncome, onAddTransaction }) {
   const [tab, setTab]     = useState('lista')
   const [modal, setModal] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -356,7 +356,27 @@ export default function InstallmentsPage({ installments, loading, onAdd, onUpdat
 
   async function handlePay(inst) {
     if (inst.paid_installments >= inst.total_installments) return
-    await onUpdate(inst.id, { paid_installments: inst.paid_installments + 1 })
+
+    const nextPaid = inst.paid_installments + 1
+
+    // Descobre o mês dessa parcela
+    const d = new Date(inst.start_date + 'T12:00:00')
+    d.setMonth(d.getMonth() + inst.paid_installments)
+    const txMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const txDate  = `${txMonth}-${String(d.getDate()).padStart(2, '0')}`
+
+    // Cria a transação de despesa automaticamente
+    await onAddTransaction({
+      type: 'expense',
+      description: `${inst.description} (${nextPaid}/${inst.total_installments})`,
+      amount: Number(inst.installment_value),
+      category: inst.category,
+      date: txDate,
+      month: txMonth,
+    })
+
+    // Atualiza o contador de parcelas pagas
+    await onUpdate(inst.id, { paid_installments: nextPaid })
   }
 
   const TABS = ['lista', 'projeção', 'simulador']

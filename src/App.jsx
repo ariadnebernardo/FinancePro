@@ -14,6 +14,7 @@ import InstallmentsPage from './pages/Installments'
 import BudgetPage from './pages/Budget'
 import { PlanningPage, ReportsPage } from './pages/PlanningReports'
 import { Spinner } from './components/ui'
+import { getCurrentMonth } from './lib/utils'
 
 const GLOBAL_CSS = `
   @keyframes fadeIn  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
@@ -30,13 +31,14 @@ const GLOBAL_CSS = `
 
 function AppInner() {
   const { user, loading: authLoading } = useAuth()
-  const [page, setPage] = useState('dashboard')
+  const [page, setPage]   = useState('dashboard')
+  const [month, setMonth] = useState(getCurrentMonth())
 
-  const txHook      = useTransactions()
-  const assetsHook  = useAssets()
-  const budgetHook  = useBudgets()
-  const instHook    = useInstallments()
-  const fixedHook   = useFixedExpenses()
+  const txHook     = useTransactions()
+  const assetsHook = useAssets()
+  const budgetHook = useBudgets()
+  const instHook   = useInstallments()
+  const fixedHook  = useFixedExpenses()
 
   if (authLoading) return (
     <div style={{ minHeight: '100vh', background: '#0b0f1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -46,86 +48,82 @@ function AppInner() {
 
   if (!user) return <AuthPage />
 
+  const expectedIncome = fixedHook.getExpectedIncome(month)
+
   return (
-    <Layout page={page} onChangePage={setPage}>
-      {({ month }) => {
-        const expectedIncome = fixedHook.getExpectedIncome(month)
-        return (
-          <>
-            {page === 'dashboard' && (
-              <Dashboard
-                transactions={txHook.transactions}
-                assets={assetsHook.assets}
-                dividends={assetsHook.dividends}
-                installments={instHook.installments}
-                fixedExpenses={fixedHook.fixedExpenses}
-                expectedIncome={expectedIncome}
-                month={month}
-              />
-            )}
-            {page === 'transactions' && (
-              <TransactionsPage
-                transactions={txHook.transactions}
-                loading={txHook.loading}
-                onAdd={txHook.add}
-                onRemove={txHook.remove}
-                month={month}
-              />
-            )}
-            {page === 'installments' && (
-              <InstallmentsPage
-                installments={instHook.installments}
-                loading={instHook.loading}
-                onAdd={instHook.add}
-                onUpdate={instHook.update}
-                onRemove={instHook.remove}
-                expectedIncome={expectedIncome}
-              />
-            )}
-            {page === 'budget' && (
-              <BudgetPage
-                transactions={txHook.transactions}
-                fixedExpenses={fixedHook.fixedExpenses}
-                installments={instHook.installments}
-                onAddFixed={fixedHook.addFixed}
-                onUpdateFixed={fixedHook.updateFixed}
-                onRemoveFixed={fixedHook.removeFixed}
-                expectedIncome={expectedIncome}
-                onSaveIncomePlan={fixedHook.upsertIncomePlan}
-                month={month}
-              />
-            )}
-            {page === 'investments' && (
-              <InvestmentsPage
-                assets={assetsHook.assets}
-                dividends={assetsHook.dividends}
-                loading={assetsHook.loading}
-                onAddAsset={assetsHook.addAsset}
-                onUpdateAsset={assetsHook.updateAsset}
-                onRemoveAsset={assetsHook.removeAsset}
-                onUpsertDividend={assetsHook.upsertDividend}
-              />
-            )}
-            {page === 'planning' && (
-              <PlanningPage
-                transactions={txHook.transactions}
-                budgets={budgetHook.budgets}
-                loading={budgetHook.loading}
-                onUpsertBudget={budgetHook.upsert}
-                onRemoveBudget={budgetHook.remove}
-                month={month}
-              />
-            )}
-            {page === 'reports' && (
-              <ReportsPage
-                transactions={txHook.transactions}
-                assets={assetsHook.assets}
-                dividends={assetsHook.dividends}
-              />
-            )}
-          </>
-        )
-      }}
+    <Layout page={page} onChangePage={setPage} month={month} onChangeMonth={setMonth}>
+      {page === 'dashboard' && (
+        <Dashboard
+          transactions={txHook.transactions}
+          assets={assetsHook.assets}
+          dividends={assetsHook.dividends}
+          installments={instHook.installments}
+          fixedExpenses={fixedHook.fixedExpenses}
+          expectedIncome={expectedIncome}
+          month={month}
+        />
+      )}
+      {page === 'transactions' && (
+        <TransactionsPage
+          transactions={txHook.transactions}
+          loading={txHook.loading}
+          onAdd={txHook.add}
+          onRemove={txHook.remove}
+          month={month}
+        />
+      )}
+      {page === 'installments' && (
+        <InstallmentsPage
+          installments={instHook.installments}
+          loading={instHook.loading}
+          onAdd={instHook.add}
+          onUpdate={instHook.update}
+          onRemove={instHook.remove}
+          expectedIncome={expectedIncome}
+          onAddTransaction={txHook.add}
+        />
+      )}
+      {page === 'budget' && (
+        <BudgetPage
+          transactions={txHook.transactions}
+          fixedExpenses={fixedHook.fixedExpenses}
+          installments={instHook.installments}
+          onAddFixed={fixedHook.addFixed}
+          onUpdateFixed={fixedHook.updateFixed}
+          onRemoveFixed={fixedHook.removeFixed}
+          expectedIncome={expectedIncome}
+          onSaveIncomePlan={fixedHook.upsertIncomePlan}
+          month={month}
+        />
+      )}
+      {page === 'investments' && (
+        <InvestmentsPage
+          assets={assetsHook.assets}
+          dividends={assetsHook.dividends}
+          loading={assetsHook.loading}
+          onAddAsset={assetsHook.addAsset}
+          onUpdateAsset={assetsHook.updateAsset}
+          onRemoveAsset={assetsHook.removeAsset}
+          onUpsertDividend={assetsHook.upsertDividend}
+        />
+      )}
+      {page === 'planning' && (
+        <PlanningPage
+          transactions={txHook.transactions}
+          budgets={budgetHook.budgets}
+          loading={budgetHook.loading}
+          onUpsertBudget={budgetHook.upsert}
+          onRemoveBudget={budgetHook.remove}
+          month={month}
+        />
+      )}
+      {page === 'reports' && (
+        <ReportsPage
+          transactions={txHook.transactions}
+          assets={assetsHook.assets}
+          dividends={assetsHook.dividends}
+        />
+      )}
     </Layout>
   )
 }
